@@ -52,7 +52,7 @@ export default function MapPage() {
       const { data, error } = await supabase
         .from("carspot")
         .select("*")
-        .order("created_at", { ascending: false })
+        .order("created_date", { ascending: false })
         .limit(200);
       if (error) throw error;
       return data;

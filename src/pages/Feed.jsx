@@ -22,7 +22,7 @@ export default function Feed() {
       const { data, error } = await supabase
         .from("carspot")
         .select("*")
-        .order("created_at", { ascending: false })
+        .order("created_date", { ascending: false })
         .limit(100);
       if (error) throw error;
       return data;
