@@ -129,7 +129,7 @@ export default function AddSpot() {
           </label>
           <div className="relative rounded-xl overflow-hidden border border-zinc-800 h-48">
             <MapContainer center={[46.603354, 1.888334]} zoom={6} className="h-full w-full" zoomControl={false}>
-              <TileLayer url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png" />
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
               <LocationPicker position={position} setPosition={setPosition} />
             </MapContainer>
           </div>

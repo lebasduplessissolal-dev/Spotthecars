@@ -105,8 +105,8 @@ export default function MapPage() {
         style={{ background: "#18181b" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://stadiamaps.com/">Stadia</a>'
-          url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {filteredSpots.map((spot) =>
           spot.latitude && spot.longitude ? (
