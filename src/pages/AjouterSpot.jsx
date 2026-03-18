@@ -68,7 +68,7 @@ export default function AddSpot() {
 
   const createSpot = useMutation({
     mutationFn: async (data) => {
-      const { error } = await supabase.from("CarSpot").insert([data]);
+      const { error } = await supabase.from('"CarSpot"').insert([data]);
       if (error) throw error;
     },
     onSuccess: () => {

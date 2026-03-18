@@ -12,7 +12,7 @@ export default function Profile() {
     queryKey: ["carspots"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("CarSpot").select("*")
+        .from('"CarSpot"').select("*")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
