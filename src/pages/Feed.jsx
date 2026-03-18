@@ -20,7 +20,7 @@ export default function Feed() {
     queryKey: ["carspots"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('"CarSpot"')
+        .from("carspot")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(100);

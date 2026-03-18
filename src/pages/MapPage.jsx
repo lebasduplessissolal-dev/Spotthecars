@@ -50,7 +50,7 @@ export default function MapPage() {
     queryKey: ["carspots"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('"CarSpot"')
+        .from("carspot")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(200);
