@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Filter } from "lucide-react";
+import { Loader2, Filter, Search } from "lucide-react";
 import SpotCard from "@/components/spots/SpotCard";
 
 const categories = [
@@ -15,6 +15,7 @@ const categories = [
 
 export default function Feed() {
   const [activeFilter, setActiveFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
   const { data: spots = [], isLoading } = useQuery({
     queryKey: ["carspots"],
@@ -29,9 +30,16 @@ export default function Feed() {
     },
   });
 
-  const filteredSpots = activeFilter === "all"
-    ? spots
-    : spots.filter((s) => s.category === activeFilter);
+  const filteredSpots = spots.filter((s) => {
+    const matchCat = activeFilter === "all" || s.category === activeFilter;
+    const q = search.toLowerCase();
+    const matchSearch =
+      !search ||
+      s.brand?.toLowerCase().includes(q) ||
+      s.model?.toLowerCase().includes(q) ||
+      s.location_name?.toLowerCase().includes(q);
+    return matchCat && matchSearch;
+  });
 
   return (
     <div className="min-h-full bg-zinc-950 pb-6">
@@ -40,7 +48,21 @@ export default function Feed() {
         <p className="text-sm text-zinc-500 mt-1">Les dernières voitures repérées</p>
       </div>
 
-      <div className="px-5 py-3 overflow-x-auto">
+      {/* Barre de recherche unifiée */}
+      <div className="px-5 pb-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <input
+            placeholder="Rechercher un véhicule ou une localité..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 text-sm focus:outline-none focus:border-orange-500"
+          />
+        </div>
+      </div>
+
+      {/* Filtres catégorie */}
+      <div className="px-5 pb-3 overflow-x-auto">
         <div className="flex gap-2">
           {categories.map((cat) => (
             <button
