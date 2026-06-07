@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { Camera, MapPin, Loader2, Crosshair, Send } from "lucide-react";
 import { toast } from "sonner";
+import { CAR_BRANDS } from "@/data/carBrands";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -55,6 +56,55 @@ function LocationPicker({ position, setPosition }) {
   );
 }
 
+function BrandAutocomplete({ value, onChange }) {
+  const [suggestions, setSuggestions] = useState([]);
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  const handleInput = (e) => {
+    const val = e.target.value;
+    onChange(val);
+    if (val.length < 1) { setSuggestions([]); setOpen(false); return; }
+    const filtered = CAR_BRANDS.filter((b) =>
+      b.toLowerCase().startsWith(val.toLowerCase())
+    );
+    setSuggestions(filtered);
+    setOpen(filtered.length > 0);
+  };
+
+  const handleSelect = (brand) => {
+    onChange(brand);
+    setSuggestions([]);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <input
+        placeholder="Ferrari, BMW..."
+        value={value}
+        onChange={handleInput}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onFocus={() => value.length > 0 && suggestions.length > 0 && setOpen(true)}
+        className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 text-sm focus:outline-none focus:border-orange-500"
+      />
+      {open && (
+        <ul className="absolute top-full mt-1 w-full bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden z-[1001] max-h-48 overflow-y-auto">
+          {suggestions.map((brand) => (
+            <li
+              key={brand}
+              onMouseDown={() => handleSelect(brand)}
+              className="px-4 py-2.5 hover:bg-zinc-800 cursor-pointer text-sm text-white border-b last:border-b-0 border-zinc-800"
+            >
+              {brand}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function AddSpot() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -87,11 +137,7 @@ export default function AddSpot() {
     const { data, error } = await supabase.storage
       .from("spot-photos")
       .upload(fileName, file, { cacheControl: "3600", upsert: false });
-    if (error) {
-      toast.error("Erreur upload photo");
-      setUploading(false);
-      return;
-    }
+    if (error) { toast.error("Erreur upload photo"); setUploading(false); return; }
     const { data: { publicUrl } } = supabase.storage.from("spot-photos").getPublicUrl(fileName);
     setForm((prev) => ({ ...prev, photo_url: publicUrl }));
     setUploading(false);
@@ -146,21 +192,14 @@ export default function AddSpot() {
           {form.photo_url ? (
             <div className="relative rounded-xl overflow-hidden border border-zinc-800">
               <img src={form.photo_url} alt="preview" className="w-full h-40 object-cover" />
-              <button
-                type="button"
+              <button type="button"
                 className="absolute bottom-2 right-2 bg-zinc-900/90 text-white text-xs px-3 py-1 rounded-lg"
-                onClick={() => updateField("photo_url", "")}
-              >Changer</button>
+                onClick={() => updateField("photo_url", "")}>Changer</button>
             </div>
           ) : (
             <label className="flex flex-col items-center justify-center h-32 rounded-xl border-2 border-dashed border-zinc-800 bg-zinc-900/50 cursor-pointer hover:border-orange-500/50 transition-colors">
-              {uploading ? (
-                <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
-              ) : (
-                <>
-                  <Camera className="w-8 h-8 text-zinc-600 mb-2" />
-                  <span className="text-xs text-zinc-500">Ajouter une photo</span>
-                </>
+              {uploading ? <Loader2 className="w-6 h-6 text-orange-500 animate-spin" /> : (
+                <><Camera className="w-8 h-8 text-zinc-600 mb-2" /><span className="text-xs text-zinc-500">Ajouter une photo</span></>
               )}
               <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
             </label>
@@ -171,9 +210,10 @@ export default function AddSpot() {
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-zinc-300 text-sm font-medium">Marque *</label>
-            <input placeholder="Ferrari" value={form.brand}
-              onChange={(e) => updateField("brand", e.target.value)}
-              className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 text-sm focus:outline-none focus:border-orange-500" />
+            <BrandAutocomplete
+              value={form.brand}
+              onChange={(val) => updateField("brand", val)}
+            />
           </div>
           <div className="space-y-2">
             <label className="text-zinc-300 text-sm font-medium">Modèle *</label>
@@ -201,9 +241,7 @@ export default function AddSpot() {
                   form.category === c.value
                     ? "bg-orange-500 text-white border-orange-500"
                     : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500"
-                }`}>
-                {c.label}
-              </button>
+                }`}>{c.label}</button>
             ))}
           </div>
         </div>
